@@ -1,0 +1,24 @@
+{
+  "name": "zhihu-api",
+  "version": "1.0.0",
+  "description": "仿知乎 RESTful API",
+  "main": "index.js",
+  "scripts": {
+    "start": "cross-env NODE_ENV=production node app",
+    "dev": "nodemon app"
+  },
+  "author": "tangyun",
+  "license": "ISC",
+  "dependencies": {
+    "jsonwebtoken": "^8.5.1",
+    "koa": "^2.13.1",
+    "koa-bodyparser": "^4.3.0",
+    "koa-json-error": "^3.1.2",
+    "koa-parameter": "^3.0.1",
+    "koa-router": "^10.0.0",
+    "mongoose": "^5.12.12"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
+  }
+}
