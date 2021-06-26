@@ -5,7 +5,6 @@ const { secret } = require("../config");
 class UsersCtl {
   /**
    * 查询所有用户
-   * @param {*} ctx
    */
   async find(ctx) {
     ctx.body = await User.find();
@@ -13,7 +12,6 @@ class UsersCtl {
 
   /**
    * 查询特定用户
-   * @param {*} ctx
    */
   async findById(ctx) {
     const { fields } = ctx.query;
@@ -31,7 +29,6 @@ class UsersCtl {
 
   /**
    * 新建用户
-   * @param {*} ctx
    */
   async create(ctx) {
     ctx.verifyParams({
@@ -49,8 +46,6 @@ class UsersCtl {
 
   /**
    * 判断是否有权限的中间件
-   * @param {*} ctx
-   * @param {*} next
    */
   async checkOwner(ctx, next) {
     if (ctx.params.id !== ctx.state.user._id) {
@@ -61,7 +56,6 @@ class UsersCtl {
 
   /**
    * 更新用户
-   * @param {*} ctx
    */
   async update(ctx) {
     ctx.verifyParams({
@@ -85,7 +79,6 @@ class UsersCtl {
 
   /**
    * 删除用户
-   * @param {*} ctx
    */
   async delete(ctx) {
     const user = await User.findByIdAndRemove(ctx.params.id);
@@ -97,7 +90,6 @@ class UsersCtl {
 
   /**
    * 登录
-   * @param {*} ctx
    */
   async login(ctx) {
     ctx.verifyParams({
@@ -121,18 +113,28 @@ class UsersCtl {
       .select("+following")
       .populate("following");
     if (!user) {
-      return ctx.throw(404);
+      ctx.throw(404, '用户不存在');
     }
     ctx.body = user.following;
   }
 
   /**
    * 获取粉丝列表
-   * @param {*} ctx
    */
   async listFollowers(ctx) {
     const users = await User.find({ following: ctx.params.id });
     ctx.body = users
+  }
+
+  /**
+   * 判断用户存在与否
+   */
+  async checkUserExist(ctx, next) {
+    const user = await User.findById(ctx.params.id)
+    if (!user) {
+      ctx.throw(404, '用户不存在')
+    }
+    await next()
   }
 
   /**
@@ -143,6 +145,8 @@ class UsersCtl {
     if (!me.following.map((id) => id.toString()).includes(ctx.params.id)) {
       me.following.push(ctx.params.id);
       me.save();
+    } else {
+      ctx.throw(404, '您已关注过该用户')
     }
     ctx.status = 204;
   }
