@@ -7,7 +7,12 @@ class UsersCtl {
    * 查询所有用户
    */
   async find(ctx) {
-    ctx.body = await User.find();
+    const { per_page = 5 } = ctx.query;
+    const page = Math.max(ctx.query.page * 1, 1) - 1;
+    const perPage = Math.max(per_page * 1, 1);
+    ctx.body = await User.find({ name: new RegExp(ctx.query.q) })
+      .limit(perPage)
+      .skip(page * perPage);
   }
 
   /**
@@ -113,7 +118,7 @@ class UsersCtl {
       .select("+following")
       .populate("following");
     if (!user) {
-      ctx.throw(404, '用户不存在');
+      ctx.throw(404, "用户不存在");
     }
     ctx.body = user.following;
   }
@@ -123,18 +128,18 @@ class UsersCtl {
    */
   async listFollowers(ctx) {
     const users = await User.find({ following: ctx.params.id });
-    ctx.body = users
+    ctx.body = users;
   }
 
   /**
    * 判断用户存在与否
    */
   async checkUserExist(ctx, next) {
-    const user = await User.findById(ctx.params.id)
+    const user = await User.findById(ctx.params.id);
     if (!user) {
-      ctx.throw(404, '用户不存在')
+      ctx.throw(404, "用户不存在");
     }
-    await next()
+    await next();
   }
 
   /**
@@ -146,7 +151,7 @@ class UsersCtl {
       me.following.push(ctx.params.id);
       me.save();
     } else {
-      ctx.throw(404, '您已关注过该用户')
+      ctx.throw(404, "您已关注过该用户");
     }
     ctx.status = 204;
   }
