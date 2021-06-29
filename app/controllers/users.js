@@ -1,5 +1,6 @@
 const jsonwebtoken = require('jsonwebtoken')
 const User = require('../models/users')
+const Topic = require('../models/topics')
 const { secret } = require('../config')
 
 class UsersCtl {
@@ -20,20 +21,24 @@ class UsersCtl {
    */
   async findById(ctx) {
     const { fields } = ctx.query
-    const selectFields = fields
+    const selectFields = fields && fields
       .split(';')
       .filter((f) => f)
       .map((f) => ' +' + f)
       .join('')
-    const populateStr = fields.split(';').filter(f => f).map(f => {
-      if (f === 'employments') {
-        return 'employments.company employments.job'
-      }
-      if (f === 'educations') {
-        return 'educations.school educations.major'
-      }
-      return f
-    }).join(' ')
+    const populateStr = fields && fields
+      .split(';')
+      .filter((f) => f)
+      .map((f) => {
+        if (f === 'employments') {
+          return 'employments.company employments.job'
+        }
+        if (f === 'educations') {
+          return 'educations.school educations.major'
+        }
+        return f
+      })
+      .join(' ')
     const user = await User.findById(ctx.params.id)
       .select(selectFields)
       .populate(populateStr)
@@ -122,7 +127,7 @@ class UsersCtl {
   }
 
   /**
-   * 获取用户关注的列表
+   * 获取用户关注的用户列表
    */
   async listFollowing(ctx) {
     const user = await User.findById(ctx.params.id)
@@ -175,6 +180,65 @@ class UsersCtl {
     const index = me.following.map((id) => id.toString()).indexOf(ctx.params.id)
     if (index > -1) {
       me.following.splice(index, 1)
+      me.save()
+    }
+    ctx.status = 204
+  }
+
+  /**
+   * 检查话题是否存在
+   */
+  async checkTopicExist(ctx, next) {
+    const topic = await Topic.findById(ctx.params.id)
+    if (!topic) {
+      return ctx.throw(404, '话题不存在')
+    }
+    await next()
+  }
+
+  /**
+   * 获取用户关注的话题列表
+   */
+  async listFollowingTopics(ctx) {
+    const user = await User.findById(ctx.params.id)
+      .select('+followingTopics')
+      .populate('followingTopics')
+    if (!user) {
+      ctx.throw(404, '用户不存在')
+    }
+    ctx.body = user.followingTopics
+  }
+
+  /**
+   * 关注话题
+   */
+  async followTopic(ctx) {
+    const me = await User.findById(ctx.state.user._id).select(
+      '+followingTopics'
+    )
+    if (
+      !me.followingTopics.map((id) => id.toString()).includes(ctx.params.id)
+    ) {
+      me.followingTopics.push(ctx.params.id)
+      me.save()
+    } else {
+      ctx.throw(404, '您已经关注过该话题了')
+    }
+    ctx.status = 204
+  }
+
+  /**
+   * 取消关注话题
+   */
+  async unFollowTopic(ctx) {
+    const me = await User.findById(ctx.state.user._id).select(
+      '+followingTopics'
+    )
+    const index = me.followingTopics
+      .map((id) => id.toString())
+      .indexOf(ctx.params.id)
+    if (index > -1) {
+      me.followingTopics.splice(index, 1)
       me.save()
     }
     ctx.status = 204

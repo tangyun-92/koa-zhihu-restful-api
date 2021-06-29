@@ -48,6 +48,10 @@ const userSchema = new Schema({
     type: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     select: false,
   }, // 关注的人
+  followingTopics: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'Topic' }],
+    select: false,
+  }, // 关注的话题
 })
 
 module.exports = model('User', userSchema)
