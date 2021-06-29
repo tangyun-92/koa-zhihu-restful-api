@@ -1,6 +1,7 @@
 const jsonwebtoken = require('jsonwebtoken')
 const User = require('../models/users')
 const Topic = require('../models/topics')
+const Question = require('../models/questions')
 const { secret } = require('../config')
 
 class UsersCtl {
@@ -21,24 +22,28 @@ class UsersCtl {
    */
   async findById(ctx) {
     const { fields } = ctx.query
-    const selectFields = fields && fields
-      .split(';')
-      .filter((f) => f)
-      .map((f) => ' +' + f)
-      .join('')
-    const populateStr = fields && fields
-      .split(';')
-      .filter((f) => f)
-      .map((f) => {
-        if (f === 'employments') {
-          return 'employments.company employments.job'
-        }
-        if (f === 'educations') {
-          return 'educations.school educations.major'
-        }
-        return f
-      })
-      .join(' ')
+    const selectFields =
+      fields &&
+      fields
+        .split(';')
+        .filter((f) => f)
+        .map((f) => ' +' + f)
+        .join('')
+    const populateStr =
+      fields &&
+      fields
+        .split(';')
+        .filter((f) => f)
+        .map((f) => {
+          if (f === 'employments') {
+            return 'employments.company employments.job'
+          }
+          if (f === 'educations') {
+            return 'educations.school educations.major'
+          }
+          return f
+        })
+        .join(' ')
     const user = await User.findById(ctx.params.id)
       .select(selectFields)
       .populate(populateStr)
@@ -242,6 +247,14 @@ class UsersCtl {
       me.save()
     }
     ctx.status = 204
+  }
+
+  /**
+   * 用户的提问列表
+   */
+  async listQuestions(ctx) {
+    const questions = await Question.find({ questioner: ctx.params.id })
+    ctx.body = questions
   }
 }
 
