@@ -9,4 +9,4 @@ const TopicSchema = new Schema({
   introduction: { type: String, select: false },
 });
 
-module.exports = model("Topics", TopicSchema);
+module.exports = model("Topic", TopicSchema);
