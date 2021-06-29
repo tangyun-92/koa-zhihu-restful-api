@@ -42,7 +42,7 @@ class UsersCtl {
   }
 
   /**
-   * 判断是否有权限的中间件
+   * 授权的中间件
    * @param {*} ctx 
    * @param {*} next 
    */
