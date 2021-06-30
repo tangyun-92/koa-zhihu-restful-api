@@ -1,5 +1,6 @@
-const Topic = require("../models/topics");
-const User = require("../models/users");
+const Topic = require('../models/topics')
+const User = require('../models/users')
+const Question = require('../models/questions')
 
 class TopicsCtl {
   /**
@@ -19,11 +20,13 @@ class TopicsCtl {
    */
   async findById(ctx) {
     const { fields } = ctx.query
-    const selectFields = fields && fields
-      .split(';')
-      .filter((f) => f)
-      .map((f) => ' +' + f)
-      .join('')
+    const selectFields =
+      fields &&
+      fields
+        .split(';')
+        .filter((f) => f)
+        .map((f) => ' +' + f)
+        .join('')
     const topic = await Topic.findById(ctx.params.id).select(selectFields)
     if (!topic) {
       ctx.throw(404, '话题不存在')
@@ -68,6 +71,14 @@ class TopicsCtl {
     const users = await User.find({ followingTopics: ctx.params.id })
     ctx.body = users
   }
+
+  /**
+   * 话题下的问题列表
+   */
+  async listQuestions(ctx) {
+    const questions = await Question.find({ topics: ctx.params.id })
+    ctx.body = questions
+  }
 }
 
-module.exports = new TopicsCtl();
+module.exports = new TopicsCtl()

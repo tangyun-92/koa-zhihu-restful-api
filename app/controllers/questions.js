@@ -42,7 +42,7 @@ class QuestionsCtl {
         .join('')
     const question = await Question.findById(ctx.params.id)
       .select(selectFields)
-      .populate('questioner')
+      .populate('questioner topics')
     if (!question) {
       ctx.throw(404, '问题不存在')
     }
