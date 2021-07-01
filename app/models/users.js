@@ -60,6 +60,10 @@ const userSchema = new Schema({
     type: [{ type: Schema.Types.ObjectId, ref: 'Answer' }],
     select: false,
   }, // 踩过的答案
+  collectingAnswers: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'Answer' }],
+    select: false,
+  }, // 收藏的答案
 })
 
 module.exports = model('User', userSchema)
