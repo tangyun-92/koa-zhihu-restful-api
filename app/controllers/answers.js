@@ -22,7 +22,8 @@ class AnswersCtl {
     if (!answer) {
       return ctx.throw(404, '答案不存在')
     }
-    if (answer.questionId !== ctx.params.questionId) {
+    // 只有当删改查答案时，才检查，赞和踩答案不检查
+    if (ctx.params.questionId && answer.questionId !== ctx.params.questionId) {
       return ctx.throw(404, '该问题下没有此答案')
     }
     ctx.state.answer = answer

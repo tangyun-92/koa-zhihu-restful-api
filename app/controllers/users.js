@@ -2,6 +2,7 @@ const jsonwebtoken = require('jsonwebtoken')
 const User = require('../models/users')
 const Topic = require('../models/topics')
 const Question = require('../models/questions')
+const Answer = require('../models/answers')
 const { secret } = require('../config')
 
 class UsersCtl {
@@ -255,6 +256,100 @@ class UsersCtl {
   async listQuestions(ctx) {
     const questions = await Question.find({ questioner: ctx.params.id })
     ctx.body = questions
+  }
+
+  /**
+   * 获取用户赞过的答案列表
+   */
+  async listLikingAnswers(ctx) {
+    const user = await User.findById(ctx.params.id)
+      .select('+likingAnswers')
+      .populate('likingAnswers')
+    if (!user) {
+      ctx.throw(404, '用户不存在')
+    }
+    ctx.body = user.likingAnswers
+  }
+
+  /**
+   * 点赞答案
+   */
+  async likeAnswer(ctx, next) {
+    const me = await User.findById(ctx.state.user._id).select('+likingAnswers')
+    if (!me.likingAnswers.map((id) => id.toString()).includes(ctx.params.id)) {
+      me.likingAnswers.push(ctx.params.id)
+      me.save()
+      await Answer.findByIdAndUpdate(ctx.params.id, { $inc: { voteCount: 1 } })
+    } else {
+      ctx.throw(404, '您已经赞过该答案了')
+    }
+    ctx.status = 204
+    await next()
+  }
+
+  /**
+   * 取消赞答案
+   */
+  async unlikeAnswer(ctx) {
+    const me = await User.findById(ctx.state.user._id).select('+likingAnswers')
+    const index = me.likingAnswers
+      .map((id) => id.toString())
+      .indexOf(ctx.params.id)
+    if (index > -1) {
+      me.likingAnswers.splice(index, 1)
+      me.save()
+      await Answer.findByIdAndUpdate(ctx.params.id, { $inc: { voteCount: -1 } })
+    }
+    ctx.status = 204
+  }
+
+  /**
+   * 获取用户踩过的答案列表
+   */
+  async listDislikingAnswers(ctx) {
+    const user = await User.findById(ctx.params.id)
+      .select('+dislikingAnswers')
+      .populate('dislikingAnswers')
+    if (!user) {
+      ctx.throw(404, '用户不存在')
+    }
+    ctx.body = user.dislikingAnswers
+  }
+
+  /**
+   * 踩答案
+   */
+  async dislikeAnswer(ctx, next) {
+    const me = await User.findById(ctx.state.user._id).select(
+      '+dislikingAnswers'
+    )
+    if (
+      !me.dislikingAnswers.map((id) => id.toString()).includes(ctx.params.id)
+    ) {
+      me.dislikingAnswers.push(ctx.params.id)
+      me.save()
+    } else {
+      ctx.throw(404, '您已经踩过该答案了')
+    }
+    ctx.status = 204
+    await next()
+  }
+
+  /**
+   * 取消踩答案
+   */
+  async unDislikeAnswer(ctx) {
+    const me = await User.findById(ctx.state.user._id).select(
+      '+dislikingAnswers'
+    )
+    const index = me.dislikingAnswers
+      .map((id) => id.toString())
+      .indexOf(ctx.params.id)
+    if (index > -1) {
+      me.dislikingAnswers.splice(index, 1)
+      me.save()
+    }
+    ctx.status = 204
   }
 }
 

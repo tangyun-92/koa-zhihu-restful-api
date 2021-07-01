@@ -52,6 +52,14 @@ const userSchema = new Schema({
     type: [{ type: Schema.Types.ObjectId, ref: 'Topic' }],
     select: false,
   }, // 关注的话题
+  likingAnswers: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'Answer' }],
+    select: false,
+  }, // 赞过的答案
+  dislikingAnswers: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'Answer' }],
+    select: false,
+  }, // 踩过的答案
 })
 
 module.exports = model('User', userSchema)

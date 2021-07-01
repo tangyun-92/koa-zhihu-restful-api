@@ -12,6 +12,7 @@ const AnswerSchema = new Schema({
     select: false,
   },
   questionId: { type: String, require: true },
+  voteCount: { type: Number, require: true, default: 0 }, // 投票数
 })
 
 module.exports = model('Answer', AnswerSchema)
