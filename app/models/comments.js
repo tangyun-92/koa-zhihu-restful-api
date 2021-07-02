@@ -12,7 +12,9 @@ const CommentSchema = new Schema({
     select: false,
   },
   questionId: { type: String, require: true },
-  answerId: { type: String, require: true},
+  answerId: { type: String, require: true },
+  rootCommentId: { type: String },
+  replyTo: { type: Schema.Types.ObjectId, ref: 'User' }, // 回复给谁的
 })
 
 module.exports = model('Comment', CommentSchema)
